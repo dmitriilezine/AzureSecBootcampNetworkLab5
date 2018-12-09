@@ -1,8 +1,85 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
-  "parameters": {},
-  "variables": {},
-  "resources": [],
-  "outputs": {}
+  "parameters": {
+    "alias": {
+      "type": "string",
+      "metadata": {
+        "description": "Enter Your Microsoft Alias"
+      }
+    }
+
+
+  },
+
+  "variables": {
+
+
+    "vNet2": {
+      "name": "[Concat(parameters('alias'),'-spoke-vnet2')]",
+      "env": "Primary",
+      "addressSpacePrefix": "10.20.0.0/16",
+      "subnet1Name": "DMZ",
+      "subnet1Prefix": "10.20.1.0/24",
+      "subnet2Name": "Web",
+      "subnet2Prefix": "10.20.2.0/24",
+      "subnet3Name": "App",
+      "subnet3Prefix": "10.20.3.0/24",
+      "subnet4Name": "Data",
+      "subnet4Prefix": "10.20.4.0/24",
+      "subnet5Name": "Identity",
+      "subnet5Prefix": "10.20.5.0/24",
+      "subnet6Name": "Management",
+      "subnet6Prefix": "10.20.6.0/24",
+      "gatewaySubnetPrefix": "10.20.7.0/27",
+      "gatewayName": "[concat(parameters('alias'),'-vnet2-GW')]",
+      "gatewayPublicIPName": "[concat(parameters('alias'),'-vnet2-GWIP')]",
+      "asn": 65032,
+      "location": "East US"
+    },
+
+
+    "dbSubnetRef": "[concat(variables('vnet2Ref'),'/subnets/','DATA')]",
+    "vnet2Ref": "[resourceId('Microsoft.Network/virtualNetworks',variables('vNet2').name)]",
+
+    "serviceendpointsta": "[concat(parameters('alias'),'securedaccount')]"
+
+      
+  },
+  "resources": [
+
+
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('serviceendpointsta')]",
+      "apiVersion": "2017-06-01",
+      "location": "[variables('vNet2').location]",
+      "dependsOn": [
+
+      ],
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "Storage",
+      "properties": {
+        "networkAcls": {
+          "bypass": "None",
+          "virtualNetworkRules": [
+            {
+              "id": "[variables('dbSubnetRef')]",
+              "action": "Allow"
+            }
+          ],
+          "defaultAction": "Deny"
+        }
+      }
+    }
+
+
+    
+
+  ],
+
+  "outputs": {
+  }
 }
